@@ -26,6 +26,21 @@ assert.equal((await fetch(base+"/api/export")).status,403);checks++;
 const concurrent={...choice,id:randomUUID()};
 const responses=await Promise.all([post(concurrent),post(concurrent)]);
 assert.deepEqual(responses.map(r=>r.status).sort(),[200,201]);checks++;
-for(let i=0;i<7;i++)assert.equal((await post({...choice,id:randomUUID()})).status,201);
+const ownerLogin=await fetch(base+"/signin-with-chatgpt?return_to=%2Fadam",{redirect:"manual"});
+assert.equal(ownerLogin.status,302);
+const ownerCookie=ownerLogin.headers.getSetCookie().map(value=>value.split(";")[0]).join("; ");
+for(const kind of ["restaurants","idea"]){
+  const combined={...choice,id:randomUUID(),kind,message:`本地测试：从 ${kind} 页面一起提交餐厅和留言`};
+  assert.equal((await post(combined)).status,201);checks++;
+  assert.equal((await post({...combined,kind:kind==="idea"?"restaurants":"idea"})).status,200);checks++;
+  const inbox=await fetch(base+"/adam",{headers:{Cookie:ownerCookie}});
+  assert.equal(inbox.status,200);
+  const html=await inbox.text();assert.ok(html.includes(combined.message));checks++;
+  const exported=await (await fetch(base+"/api/export",{headers:{Cookie:ownerCookie}})).json();
+  const saved=exported.find(row=>row.id===combined.id);
+  assert.equal(saved.kind,"both");assert.equal(saved.message,combined.message);
+  assert.deepEqual(saved.restaurants.map(r=>r.id),combined.selected);checks++;
+}
+for(let i=0;i<5;i++)assert.equal((await post({...choice,id:randomUUID()})).status,201);
 assert.equal((await post({...choice,id:randomUUID()})).status,429);checks++;
 console.log(`${checks} API checks passed: persistence, idempotency, concurrency, validation, CSRF, size limit, rate limit, private export.`);

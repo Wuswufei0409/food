@@ -1,0 +1,12 @@
+{
+  "installCommand": "npm ci --no-audit --no-fund",
+  "buildCommand": "npm run build:edgeone",
+  "outputDirectory": "dist-edgeone",
+  "nodeVersion": "22.14.0",
+  "cloudFunctions": {"overseasRegions": ["ap-hongkong"]},
+  "rewrites": [{ "source": "/*", "destination": "/index.html" }],
+  "headers": [
+    { "source": "/api/*", "headers": [{ "key": "Cache-Control", "value": "private, no-store" }] },
+    { "source": "/*", "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }, { "key": "Referrer-Policy", "value": "same-origin" }] }
+  ]
+}

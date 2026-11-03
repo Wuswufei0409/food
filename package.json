@@ -6,6 +6,9 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "build:edgeone": "vite build --config vite.edgeone.config.ts",
+    "dev:edgeone": "vite --config vite.edgeone.config.ts",
+    "test:edgeone": "node scripts/test-edgeone.mjs",
     "install:ci": "node scripts/install-ci.mjs",
     "dev": "node scripts/run-framework.mjs dev",
     "build": "node scripts/run-framework.mjs build",
@@ -15,6 +18,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
+    "@edgeone/pages-blob": "0.0.18",
     "@hookform/resolvers": "^5.7.1",
     "@shadcn/react": "^0.3.0",
     "class-variance-authority": "0.7.1",

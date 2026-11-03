@@ -11,6 +11,8 @@
 
 # Generated builds and framework state
 /dist/
+/dist-edgeone/
+/.edgeone/
 /.next/
 /.vinext/
 /out/
