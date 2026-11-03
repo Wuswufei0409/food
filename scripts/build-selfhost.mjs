@@ -1,0 +1,13 @@
+import { build as bundle } from 'esbuild';
+import { build as viteBuild } from 'vite';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+await mkdir('dist-selfhost', { recursive:true });
+await viteBuild({ configFile:'vite.edgeone.config.ts', build:{outDir:fileURLToPath(new URL('../dist-selfhost/public',import.meta.url)),emptyOutDir:true} });
+await bundle({entryPoints:{server:'server/selfhost.mjs',maintenance:'server/maintenance.mjs'},bundle:true,platform:'node',format:'esm',target:'node24',outdir:'dist-selfhost',outExtension:{'.js':'.mjs'}});
+await writeFile('dist-selfhost/package.json',JSON.stringify({name:'yingxue-dinner-server',private:true,type:'module',engines:{node:'>=24.0.0'},scripts:{start:'node server.mjs'}},null,2)+'\n');
+const commit=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+const sourceDirty=!!execFileSync('git',['status','--porcelain'],{encoding:'utf8'}).trim();
+await writeFile('dist-selfhost/build-info.json',JSON.stringify({sourceCommit:commit,sourceDirty,builtAt:new Date().toISOString()},null,2)+'\n');
+console.log('Standalone server build ready: dist-selfhost (Node 24; no npm install on server).');

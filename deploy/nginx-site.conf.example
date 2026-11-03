@@ -1,0 +1,17 @@
+# Add to the existing Nginx installation after confirming domain and ICP status.
+# Replace dinner.example with the verified domain. HTTPS certificate paths should
+# be set by the operator after certificate issuance.
+server {
+    listen 80;
+    server_name dinner.example;
+    client_max_body_size 16k;
+    location / {
+        proxy_pass http://127.0.0.1:8789;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30s;
+    }
+}

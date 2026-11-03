@@ -10,6 +10,7 @@ export interface AnswerStore {
   get<T>(key: string): Promise<T | null>;
   set(key: string, value: unknown): Promise<void>;
   list(prefix: string, cursor?: string): Promise<{ keys: string[]; cursor?: string }>;
+  saveAnswer?(key: string, record: StoredAnswer, limitKey: string, maximum: number): Promise<"created" | "duplicate" | "limited">;
 }
 const DAY = 86400000;
 const FORM_COOKIE = "dinner_form";
@@ -43,15 +44,20 @@ export async function handleRequest(request: Request, env: Settings, store: Answ
       if (await store.get(key)) return json({ ok: true, id: answer.id });
       const day = new Date().toISOString().slice(0, 10);
       const limitKey = `limits/forms/${day}/${digest(sessionId)}.json`;
+      const record: StoredAnswer = {
+        ...answer, restaurants: JSON.parse(answer.restaurants), sessionId,
+        createdAt: new Date().toISOString(),
+      };
+      if (store.saveAnswer) {
+        const result = await store.saveAnswer(key, record, limitKey, 10);
+        if (result === "limited") return json({ error: "今天已经收到很多想法啦，明天再来吧。" }, 429);
+        return json({ ok: true, id: answer.id }, result === "created" ? 201 : 200);
+      }
       const count = await store.get<number>(limitKey) || 0;
       if (count >= 10) return json({ error: "今天已经收到很多想法啦，明天再来吧。" }, 429);
       // This counter is best-effort, not a transactional quota. Answer persistence
       // uses a separate key for every submission and never a shared array/index.
       await store.set(limitKey, count + 1);
-      const record: StoredAnswer = {
-        ...answer, restaurants: JSON.parse(answer.restaurants), sessionId,
-        createdAt: new Date().toISOString(),
-      };
       await store.set(key, record);
       return json({ ok: true, id: answer.id }, 201);
     }

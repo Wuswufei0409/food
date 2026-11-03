@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowLeft, Heart, Check, MapPin, Utensils, Sparkles, Send, X, Plus, Mail, LoaderCircle } from "lucide-react";
 import { restaurants } from "@/lib/restaurants";
+import { createRequestId } from "@/lib/request-id";
 const DRAFT = "yingxue-dinner-draft-v1";
 function Flower({ className = "" }: { className?: string }) {
   return <svg className={className} viewBox="0 0 100 100" fill="none" aria-hidden="true">{[0,60,120,180,240,300].map(a => <ellipse key={a} cx="50" cy="27" rx="14" ry="23" fill="currentColor" transform={`rotate(${a} 50 50)`}/>)}<circle cx="50" cy="50" r="13" fill="#ffd975"/><path d="M44 49h1m10 0h1m-12 6q6 6 12 0" stroke="#325948" strokeWidth="2.5" strokeLinecap="round"/></svg>;
@@ -23,7 +24,7 @@ export default function Home() {
   async function submit(kind:"restaurants"|"idea"){
     if(inFlight.current)return;
     if(!selected.length&&!message.trim()){setError("选一家心动的餐厅，或写一点你的想法，再发送吧。");return;}
-    const id=requestId||crypto.randomUUID();setRequestId(id);setError("");setSending(true);inFlight.current=true;
+    const id=requestId||createRequestId();setRequestId(id);setError("");setSending(true);inFlight.current=true;
     try{
       const session=await fetch("/api/session",{cache:"no-store",signal:AbortSignal.timeout(15000)});
       if(!session.ok)throw new Error("暂时连接不上，你的内容还在，稍后再试一下吧。");

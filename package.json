@@ -6,6 +6,8 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "build:selfhost": "node scripts/build-selfhost.mjs",
+    "test:selfhost": "node scripts/test-selfhost.mjs",
     "build:edgeone": "vite build --config vite.edgeone.config.ts",
     "dev:edgeone": "vite --config vite.edgeone.config.ts",
     "test:edgeone": "node scripts/test-edgeone.mjs",
